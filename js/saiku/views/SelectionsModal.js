@@ -77,17 +77,16 @@ var SelectionsModal = Modal.extend({
     },
 
     get_members: function() {
+        /* New code doesn't work with CE?
             var path = "/result/metadata/dimensions/" + this.member.dimension + "/hierarchies/" + this.member.hierarchy + "/levels/" + this.member.level;
             //console.log(path);
             this.workspace.query.action.get(path, { success: this.fetch_members, data: {result: this.use_result_option}});
             
 // OLD CODE
-/*
+*/
             this.member.fetch({
                 success: this.fetch_members
             });
-        }
-*/
     },
     
     fetch_members: function(model, response) {
