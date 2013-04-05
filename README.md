@@ -5,6 +5,11 @@ For more information, see [saiku](http://saikuanalytics.com)
 
 You can put the UI on a separate server (apache httpd or simply a webapp in tomcat/webapps e.g)
 
+Note on dropin_pentaho_ce branch!!!
+-----------------------------------
+This version of the repository replaces your biserver-ce/pentaho-solutions/system/saiku/ui directory.  Just delete the old one and clone this repository in its place for the new version.
+
+
 Build Instructions
 ------------------
 
