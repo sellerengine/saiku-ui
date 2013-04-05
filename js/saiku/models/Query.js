@@ -73,6 +73,7 @@ var Query = Backbone.Model.extend({
     run: function(force, mdx) {
         // Check for automatic execution
 
+        Saiku.ws = this.workspace; //DEBUG
         
         if ( (this.properties.properties['saiku.olap.query.automatic_execution'] == "false") &&
             ! (force === true)) {

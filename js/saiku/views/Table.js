@@ -69,6 +69,7 @@ var Table = Backbone.View.extend({
             var d = cell.properties.dimension;
             var h = cell.properties.hierarchy;
             var l = cell.properties.level;
+            var hrefName = [ d, 'hierarchy', '[' + h + ']', l ].join('/');
 
             var keep_payload = JSON.stringify(
                 {
@@ -159,24 +160,42 @@ var Table = Backbone.View.extend({
             var citems = {
                     "name" : {name: "<b>" + member + "</b>", disabled: true },
                     "sep1": "---------",
-                    "keeponly": {name: "Keep Only", payload: keep_payload }
             };
-            if (d != "Measures") {
+            if (d === "Measures") {
+                citems["keeponly"] = {name: "Keep Only",
+                        payload: keep_payload
+                };
+            }
+            else {
+                citems["dim_drill"] = {
+                        name: "Drill through",
+                        action: function() {
+                                self.workspace.drop_zones.dimension_drill(
+                                        cell.properties.uniquename,
+                                        hrefName
+                                );
+                        }
+                };
                 citems["fold1key"] = {
                         name: "Include Level",
                         items: lvlitems("include-")
-                    };
+                };
                 citems["fold2key"] = {
                         name: "Keep and Include Level",
                         items: lvlitems("keep-")
-                    };
+                };
                 citems["fold3key"] = {
                         name: "Remove Level",
                         items: lvlitems("remove-")
-                    };
+                };
             }
             return {
                 callback: function(key, options) {
+                    if (citems[key].action) {
+                        citems[key].action();
+                        return;
+                    }
+
                     self.workspace.query.action.put('/axis/' + axis + '/dimension/' + d, { 
                         success: function() {
                             var formatter = self.workspace.query.get('formatter');

@@ -422,5 +422,5 @@ var Workspace = Backbone.View.extend({
     
     remove_dimension: function(event, ui) {
         this.drop_zones.remove_dimension(event, ui);
-    }
+    },
 });

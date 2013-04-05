@@ -25,6 +25,7 @@ var WorkspaceDropZone = Backbone.View.extend({
     
     events: {
         'sortbeforestop': 'select_dimension',
+        'click .d_dimension.dimension_drill a': 'dimension_undrill',
         'click .d_dimension span.selections': 'selections',
         'click .d_dimension a': 'selections',
         'click .d_measure a' : 'remove_dimension',
@@ -582,9 +583,16 @@ var WorkspaceDropZone = Backbone.View.extend({
         }
             
 
-        $originalItem.parent().find('.ui-draggable-disabled').clone().attr('class', 'ui-draggable').removeAttr('style')
-                                .addClass(type)
-                                .insertAfter(insertElement);
+        //Copy a pristine version of our link from the sidebar
+        var clone = $originalItem.parent().find('.ui-draggable-disabled')
+                .clone()
+                .attr('class', 'ui-draggable')
+                .removeAttr('style')
+                .addClass(type)
+                .insertAfter(insertElement);
+        if (ui.item.hasClass('dimension_drill')) {
+            clone.addClass('dimension_drill');
+        }
         
 
         axis.find('.d_dimension a').each( function(index, element) {
@@ -673,5 +681,122 @@ var WorkspaceDropZone = Backbone.View.extend({
             event.preventDefault();
         } catch (e) { }
         return false;
+    },
+
+
+    dimension_drill: function(member_uniquename, dimension) {
+        /** For the first element in ROWS, filter it on a single member and move
+            it to the front of FILTERS.
+
+            dimension, if unspecified, defaults to the first "Row" in the
+            current query.  Otherwise it should be the full dimension name (the
+            href component of links referring to it).
+            */
+        var self = this;
+        var firstDimEl;
+        if (dimension) {
+            firstDimEl = $('div.fields_list_body .d_dimension a[href="#'
+                    + dimension + '"]', this.el).parents('.d_dimension');
+        }
+        else {
+            firstDimEl = $('div.fields_list_body.rows .d_dimension:first',
+                    this.el);
+        }
+        var updates = [];
+        dimension = $('a', firstDimEl).attr('href').replace('#', '');
+        var dimMember = new Member({}, {
+            cube: this.workspace.selected_cube,
+            dimension: dimension
+        });
+
+        //Step one - apply filtering on new element
+        updates.push({
+            hierarchy: dimMember.hierarchy,
+            uniquename: dimMember.level,
+            type: 'level',
+            action: 'delete'
+        });
+        updates.push({
+            uniquename: dimMember.hierarchy + '.' + member_uniquename,
+            type: 'member',
+            action: 'add'
+        });
+
+        this.workspace.query.action.put('/axis/ROWS/dimension/' + dimMember.dimension, {
+            success: afterFilter,
+            data: {
+                selections: JSON.stringify(updates)
+            }
+        });
+
+        function afterFilter(model, response) {
+            self._manual_move(firstDimEl, 'FILTER');
+            firstDimEl.addClass('dimension_drill');
+        }
+    },
+
+
+    dimension_undrill: function(event) {
+        /** We have a drilled-through member in filters; undrill it!
+            */
+        //Reverse a dimension drill for the given item.
+        var self = this;
+
+        var $item = $(event.target).parents('.d_dimension');
+        var dimension = $('a', $item).attr('href').substring(1);
+        var dimMember = new Member({}, {
+            cube: this.workspace.selected_cube,
+            dimension: dimension
+        });
+
+        //Step one - revert filtering on element
+        var updates = [];
+        updates.push({
+            hierarchy: dimMember.hierarchy,
+            uniquename: dimMember.level,
+            type: 'level',
+            action: 'delete'
+        });
+        updates.push({
+            hierarchy: dimMember.hierarchy,
+            uniquename: dimMember.level,
+            type: 'level',
+            action: 'add'
+        });
+
+        this.workspace.query.action.put('/axis/FILTER/dimension/' + dimMember.dimension, {
+            success: afterFilter,
+            data: {
+                selections: JSON.stringify(updates)
+            }
+        });
+
+        function afterFilter(model, response) {
+            self._manual_move($item, 'ROWS');
+            $item.removeClass('dimension_drill');
+        }
+
+        //Stop other handlers
+        event.stopImmediatePropagation();
+        return false;
+    },
+
+
+    _manual_move: function(dimensionEl, target) {
+        /** Moves the given d_dimension element to another row.
+            */
+        //This will automatically re-render the query when it is done; we
+        //simulate a UI move since this class lacks proper methods.
+        var fakePlace = $('<span></span>').prependTo(
+                $('div.fields_list_body.' + target.toLowerCase() + ' ul',
+                this.el)
+        );
+        dimensionEl.detach();
+        this.move_dimension(
+            new $.Event({ target: dimensionEl }),
+            { item: dimensionEl, placeholder: fakePlace },
+            target
+        );
+        fakePlace.replaceWith(dimensionEl);
     }
 });
