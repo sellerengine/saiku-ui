@@ -78,8 +78,6 @@
         <script type="text/javascript" src="js/saiku/views/LoginForm.js"></script>
         <script type="text/javascript" src="js/saiku/views/AboutModal.js"></script>
         <script type="text/javascript" src="js/saiku/views/AddFolderModal.js"></script>
-        <script type="text/javascript" src="js/saiku/views/FilterModal.js"></script>
-        <script type="text/javascript" src="js/saiku/views/CustomFilterModal.js"></script>
         <script type="text/javascript" src="js/saiku/views/WorkspaceToolbar.js"></script>
         <script type="text/javascript" src="js/saiku/views/WorkspaceDropZone.js"></script>
         <script type="text/javascript" src="js/saiku/views/Table.js"></script>
@@ -87,7 +85,6 @@
         <script type="text/javascript" src="js/saiku/views/DeleteRepositoryObject.js"></script>
         <script type="text/javascript" src="js/saiku/views/OpenQuery.js"></script>
         <script type="text/javascript" src="js/saiku/views/SaveQuery.js"></script>
-        <script type="text/javascript" src="js/saiku/views/OpenDialog.js"></script>
         <script type="text/javascript" src="js/saiku/views/Tab.js"></script>
         <script type="text/javascript" src="js/saiku/models/Repository.js"></script>
         <script type="text/javascript" src="js/saiku/models/Properties.js"></script>
@@ -103,30 +100,25 @@
         <script type="text/javascript" src="js/saiku/routers/QueryRouter.js"></script>
                 
         <!-- Saiku plugins -->
-      
-            
-        <!--
-        <script type="text/javascript" src="js/saiku/plugins/Chart/plugin.js" defer></script>
-        -->
-        <script type="text/javascript" src="js/saiku/plugins/Statistics/plugin.js" defer></script>
-        <script type="text/javascript" src="js/saiku/plugins/I18n/plugin.js" defer></script>
-        <script type="text/javascript" src="js/saiku/plugins/BIServer/plugin.js" defer></script>
-        <script type="text/javascript" src="js/saiku/plugins/Buckets/plugin.js" defer></script>        
-                    
-            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/def.js"></script>
-            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/protovis.js"></script>
+      <!--  
+            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/Base.js"></script>
+            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/protovis-d3.3.js"></script>
             <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/protovis-msie.js"></script>
-            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/pvc-r2.0.js"></script>
+            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/pvc-d1.0.js"></script>
 
             <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/jquery.tipsy.js"></script>
             <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/tipsy.js"></script>
             <link type="text/css" href="js/saiku/plugins/CCC_Chart/tipsy.css" rel="stylesheet"/>
-            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/cccProperties.js"></script>
-            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/cccCharts.js"></script>
             <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/plugin.js"></script>
-            <!-- <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/plugin.js" defer></script> -->
-
-        <script type="text/javascript" src="js/ace/ace.js" charset="utf-8"></script>
+            <script type="text/javascript" src="js/saiku/plugins/CCC_Chart/plugin.js" defer></script>
+        -->
+        <script type="text/javascript" src="js/saiku/plugins/Chart/plugin.js" defer></script>
+        
+        <script type="text/javascript" src="js/saiku/plugins/Statistics/plugin.js" defer></script>
+        <script type="text/javascript" src="js/saiku/plugins/I18n/plugin.js" defer></script>
+        <script type="text/javascript" src="js/saiku/plugins/BIServer/plugin.js" defer></script>
+        <script type="text/javascript" src="js/saiku/plugins/Buckets/plugin.js" defer></script>
+        
 
 
 
@@ -184,7 +176,7 @@
                         <% } %>
                         <% _.each(hierarchy.levels, function(level) { %>
                             <% if (typeof level["visible"] == "undefined" || level["visible"]) { %>
-                                <li class="hide"><a title="<%= level.description ? level.description : level.caption %>" rel="<%= level.uniqueName %>" 
+                                <li class="hide"><a title="<%= level.uniqueName %>" rel="<%= level.uniqueName %>" 
                                     class="level" href="#<%= dimension.name %>/hierarchy/<%= hierarchy.uniqueName %>/<%= level.uniqueName %>"><%= level.caption %></a>
                                 </li>
                             <% } %>
@@ -220,10 +212,7 @@
             <div class="workspace_inner">
                 <div class="workspace_toolbar"></div>
                 <div class="workspace_editor">
-                    <div id='mdx_editor' class='mdx_input hide'>
-                    </div>
-                    <span class="editor_info hide"></span>
-                    
+                    <textarea class="hide mdx_input" style="height:120px;" />
                 </div>
                 <div class="workspace_results_info" align="right" />
                 <div class="workspace_results">
@@ -256,14 +245,14 @@
         <script type="text/x-jquery-tmpl" id="template-workspace-dropzones">
         <div class="workspace_fields">
             <div class="fields_list" title="COLUMNS">
-                <div class="fields_list_header i18n disabled_toolbar">Columns<span></span></div>
+                <div class="fields_list_header i18n">Columns</div>
                 <div class="fields_list_body columns">
                     <ul class="connectable"></ul>
                 </div>
                 <div class="clear"></div>
             </div>
             <div class="fields_list" title="ROWS">
-                <div class="fields_list_header i18n disabled_toolbar">Rows<span></span></div>
+                <div class="fields_list_header i18n">Rows</div>
                 <div class="fields_list_body rows">
                     <ul class="connectable">
                     </ul>
@@ -271,7 +260,7 @@
                 <div class="clear"></div>
             </div>
             <div class="fields_list" title="FILTER">
-                <div class="fields_list_header i18n disabled_toolbar">Filter<span></span></div>
+                <div class="fields_list_header i18n">Filter</div>
                 <div class="fields_list_body filter">
                     <ul class="connectable">
                     </ul>
@@ -283,9 +272,6 @@
         
         <script type="text/x-jquery-tmpl" id="template-workspace-toolbar">
         <ul>
-            <li><a href="#open_query" 
-                class="i18n open button sprite" 
-                title="Open query"></a></li>
             <li><a href="#save_query" 
                 class="i18n save button disabled_toolbar sprite" 
                 title="Save query"></a></li>
@@ -331,21 +317,9 @@
             <li><a href="#export_csv" 
                 class="i18n export_csv button disabled_toolbar sprite" 
                 title="Export CSV"></a></li>
-            <li><a href="#export_pdf" 
-                class="i18n export_pdf button disabled_toolbar sprite" 
-                title="EXPERIMENTAL: Export PDF"></a></li>
             <li><a href="#switch_to_mdx" 
                 class="i18n switch_to_mdx button disabled_toolbar" 
                 title="Switch to MDX Mode"></a></li>
-            <li class="seperator"><a href="#spark_bar" 
-                class="i18n spark_bar button disabled_toolbar" 
-                title="Spark Bars">sB</a></li>
-            <li><a href="#spark_line" 
-                class="i18n spark_line button disabled_toolbar" 
-                title="Spark Lines">sL</a></li>
-            <li><a href="#chart" 
-                class="i18n chart button disabled_toolbar" 
-                title="Toggle Chart"></a></li>
         </ul>
         </script>
         
@@ -433,8 +407,7 @@
                 <select multiple disabled></select>
             </div>
             <div class="options">
-                <input name="show_unique" id="show_unique" type="checkbox" /><label for="show_unique" class="i18n">Show Unique Names</label><br />
-                <input name="use_result" id="use_result" type="checkbox" /><label for="use_result" class="i18n">Use Result</label>
+                <input name="show_unique" id="show_unique" type="checkbox" /><label for="show_unique" class="i18n">Show Unique Names</label>
             </div>
         </script>
         <script type="text/x-jquery-tmpl" id="template-permissions">
@@ -480,9 +453,9 @@
         </script>
         <script type="text/x-jquery-tmpl" id="template-drillthrough-list">
         <div class="sidebar" style="border:1px solid #CCCCCC">
-            <h3 class="i18n"><input type="checkbox" class="all_dimensions"/>Dimensions</h3>
+            <h3 class="i18n">Dimensions</h3>
             <div class="sidebar_inner dimension_tree"></div>
-            <h3 class="i18n"><input type="checkbox" class="all_measures"/>Measures</h3>
+            <h3 class="i18n">Measures</h3>
             <div class="sidebar_inner measure_tree"></div>
         </div>
         
@@ -527,11 +500,9 @@
                 
                 <ul>
                 <% _.each(measures, function(measure) { %>
-                    <% if(typeof measure.calculated == "undefined" || measure.calculated == false) { %>
-                        <li> &nbsp;&nbsp;&nbsp;&nbsp;
-                                <input type="checkbox" class="check_level" value="<%= measure.uniqueName %>"> <%= measure.caption %></input>
-                                </li>
-                    <% } %>
+                    <li> &nbsp;&nbsp;&nbsp;&nbsp;
+                            <input type="checkbox" class="check_level" value="<%= measure.uniqueName %>"> <%= measure.caption %></input>
+                            </li>
                 <% }); %>
                 </ul>
             </li>

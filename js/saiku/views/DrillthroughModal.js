@@ -30,11 +30,10 @@ var DrillthroughModal = Modal.extend({
         'click .expand': 'select',
         'click .folder_collapsed': 'select',
         'click .folder_expanded': 'select',
+        
         'click .dialog_footer a:' : 'call',
         'click .parent_dimension input' : 'select_dimension',
-        'click .measure_tree input' : 'select_measure',
-        'click input.all_measures' : 'select_all_measures',
-        'click input.all_dimensions' : 'select_all_dimensions',
+        'click .measure_tree input' : 'select_measure'
     },
 
     
@@ -113,18 +112,6 @@ var DrillthroughModal = Modal.extend({
         var $target = $(event.target);
         var checked = $target.is(':checked');
         $target.parent().find('input').attr('checked', checked);
-    },
-
-    select_all_dimensions: function(event) {
-        var $target = $(event.target);
-        var checked = $target.is(':checked');
-        $(this.el).find('.dimension_tree input').attr('checked', checked);
-    },
-
-    select_all_measures: function(event) {
-        var $target = $(event.target);
-        var checked = $target.is(':checked');
-        $(this.el).find('.measure_tree input').attr('checked', checked);
     },
 
     select_measure: function(event) {

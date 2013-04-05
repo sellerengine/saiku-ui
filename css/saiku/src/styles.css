@@ -408,6 +408,12 @@ html, body {
     background: url('../../../images/src/bullet_green.png') 0px -2px no-repeat;
 }
 
+@-moz-document url-prefix() {
+    .sidebar h3.top {
+    border-top: none !important;
+    margin: 0;
+    padding-top: 6px;
+}
 .sidebar h3 {
     line-height: 1.5em;
     margin: 0;
@@ -478,34 +484,6 @@ html, body {
     text-shadow: 1px 1px 0 #FFFFFF;
     width: 62px;
 }
-.fields_list .limit {
-    cursor: pointer;
-}
-
-.limit span {
-background: url("../../../images/src/context_down.png") no-repeat;
-    height: 16px;
-    width: 14px;
-    float: right;
-    cursor: pointer;
-}
-
-
-.fields_list .limit:hover {
-    border: 1px solid #CCC;
-    background: none;
-    background-color: #A0A0A0 ;
-    padding: 1px 4px 2px 4px;
-}
-.fields_list .on {
-    border: 1px solid #CCC;
-    background: none;
-    background-color: #A0A0A0 ;
-    padding: 1px 4px 2px 4px;
-    
-}
-
-
 .fields_list .fields_list_body {
     float: left;
     padding:  0;
@@ -539,7 +517,6 @@ background: url("../../../images/src/context_down.png") no-repeat;
     padding: 0 6px;
     min-width: 70px;
     text-align: center;
-    white-space:nowrap;
 }
 .fields_list .fields_list_body ul li ul {
     float: right;
@@ -888,28 +865,7 @@ background: url("../../../images/src/sort_none.png") no-repeat;
     height: 130px;
 }
 
-.dialog_filter .dialog_icon {
-    display: none;
-}
-.dialog_filter .dialog_body {
-    margin: 15px;
-    line-height: 30px;
-}
-.dialog_filter .dialog_body .n {
-    width: 40px;
-}
 
-.dialog_filter td.col1 {
-    width: 240px;
-}
-.dialog_filter textarea.sortliteral {
-    width: 200px;
-    height: 40px;
-}
-.dialog_filter textarea.filter_expression {
-    width: 300px;
-    height: 60px;
-}
 
 
 .dialog_drillthrough .dialog_icon {
@@ -966,14 +922,7 @@ background: url("../../../images/src/sort_none.png") no-repeat;
 .workspace_area {
     overflow: auto;
 }
-.mdx_input {
-    height: 150px;
-    border: 1px solid #CCCCCC;
-}
 
-.workspace_editor .editor_info {
-    color: #999999;
-}
 /** Workspace Results */
 .workspace_results_info {
     color: #999999;
@@ -1104,7 +1053,7 @@ background: url("../../../images/src/sort_none.png") no-repeat;
     border-bottom: 1px solid #CCC;
     font-weight: bold;
     height: 32px;
-    margin: 0 0 3px 0;
+    margin: 0 0 10px 0;
     padding: 3px 10px 3px 5px;
     text-shadow: 1px 1px 0 #FFFFFF;
 }
@@ -1202,13 +1151,6 @@ background: url("../../../images/src/sort_none.png") no-repeat;
 .workspace_toolbar .export_xls {
     background-position: -847px 7px;
 }
-
-.workspace_toolbar .export_pdf {
-    background-image: url('../../../images/src/button_pdf.png');
-    background-repeat:no-repeat;
-    background-position: 7px 7px;
-}
-
 .workspace_toolbar .toggle_fields {
     background-position: -913px 7px;
 }
@@ -1232,11 +1174,6 @@ background: url("../../../images/src/sort_none.png") no-repeat;
   background-image: url('../../../images/src/switch_to_mdx.png');
   background-position: 7px 7px;
   background-repeat:no-repeat;
-}
-.workspace_toolbar .chart {
-    background-image:   url('../../../js/saiku/plugins/Chart/chart.png');
-    background-repeat:  no-repeat;
-    background-position: 7px 7px;
 }
 
 .form_button {
@@ -1417,7 +1354,7 @@ background: url("../../../images/src/sort_none.png") no-repeat;
 
 /* custom */
 
-.dialog_body .RepositoryObjects {
+#save_query_form .RepositoryObjects {
     padding: 10px;
     margin-top: 5px;
     border: 1px solid #cccccc;

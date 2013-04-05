@@ -92,11 +92,8 @@ if (Settings.BIPLUGIN) {
     Settings.PLUGIN = true;
     Settings.REST_URL = "../saiku/";
 
-
     $(document).ready(function() {
         Saiku.session = new Session();
-        
-        $.getScript(Settings.REST_URL + Saiku.session.username + "/plugin/plugins");        
     });
 }
 

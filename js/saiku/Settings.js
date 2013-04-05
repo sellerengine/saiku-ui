@@ -18,7 +18,7 @@
  * Change settings here
  */
 var Settings = {
-    VERSION: "Saiku 2.5-SNAPSHOT",
+    VERSION: "Saiku 2.4",
     BIPLUGIN: false,
     BASE_URL: "",
     TOMCAT_WEBAPP: "/saiku",
@@ -41,7 +41,6 @@ var Settings = {
     // limits the number of rows in the result
     // 0 - no limit
     RESULT_LIMIT: 0,
-    MEMBERS_FROM_RESULT: true,
     PLUGINS: [
         "Chart"
     ],
@@ -101,20 +100,6 @@ if (!Array.prototype.indexOf)
     }
     return -1;
   };
-}
-
-var tagsToReplace = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;'
-};
-
-function replaceTag(tag) {
-    return tagsToReplace[tag] || tag;
-}
-
-function safe_tags_replace(str) {
-    return str.replace(/[&<>]/g, replaceTag);
 }
 
 if (window.location.hostname && (window.location.hostname == "dev.analytical-labs.com" || window.location.hostname == "demo.analytical-labs.com" )) {

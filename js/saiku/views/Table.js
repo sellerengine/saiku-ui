@@ -72,14 +72,14 @@ var Table = Backbone.View.extend({
 
             var keep_payload = JSON.stringify(
                 {
-                    "hierarchy"     :  h,
+                    "hierarchy"     : "[" + h + "]",
                     "uniquename"    : l,
                     "type"          : "level",
                     "action"        : "delete"
                 }) 
             + "," +JSON.stringify(
                 {
-                    "hierarchy"     :  h,
+                    "hierarchy"     : "[" + h + "]",
                     "uniquename"    : cell.properties.uniquename,
                     "type"          : "member",
                     "action"        : "add"
@@ -108,12 +108,12 @@ var Table = Backbone.View.extend({
             _.each(dimensions, function(dimension) {
                 if (dimension.name == d) {
                     _.each(dimension.hierarchies, function(hierarchy) {
-                        if (hierarchy.uniqueName == h) {
+                        if (hierarchy.name == h) {
                             _.each(hierarchy.levels, function(level) {
                                 items[level.name] = {
-                                    name: level.caption,
+                                    name: level.name,
                                     payload: JSON.stringify({
-                                        "hierarchy"     : h,
+                                        "hierarchy"     : "[" + h + "]",
                                         uniquename    : level.uniqueName,
                                         type          : "level",
                                         action        : "add"
@@ -122,9 +122,9 @@ var Table = Backbone.View.extend({
                                 if(_.indexOf(used_levels, level.uniqueName) > -1) {
                                     items[level.name].disabled = true;
                                     items["remove-" + level.name] = {
-                                        name: level.caption,
+                                        name: level.name,
                                         payload: JSON.stringify({
-                                            "hierarchy"     :  h,
+                                            "hierarchy"     : "[" + h + "]",
                                             uniquename    : level.uniqueName,
                                             type          : "level",
                                             action        : "delete"
@@ -179,9 +179,7 @@ var Table = Backbone.View.extend({
                 callback: function(key, options) {
                     self.workspace.query.action.put('/axis/' + axis + '/dimension/' + d, { 
                         success: function() {
-                            var formatter = self.workspace.query.get('formatter');
                             self.workspace.query.clear();
-                            self.workspace.query.set({ 'formatter' : formatter });
                             self.workspace.query.fetch({ success: function() {
                                 
                                 $(self.workspace.el).find('.fields_list_body ul').empty();
@@ -234,21 +232,9 @@ var Table = Backbone.View.extend({
         }
         
         // Clear the contents of the table
-        var cdate = new Date().getHours() + ":" + new Date().getMinutes();
         var runtime = args.data.runtime != null ? (args.data.runtime / 1000).toFixed(2) : "";
-        /*
-        var info = '<b>Time:</b> ' + cdate 
-                + " &emsp;<b>Rows:</b> " + args.data.height 
-                + " &emsp;<b>Columns:</b> " + args.data.width 
-                + " &emsp;<b>Duration:</b> " + runtime + "s";
-*/
-var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate 
-                + "&emsp;/ &nbsp;" + args.data.width 
-                + " x " + args.data.height 
-                + "&nbsp; / &nbsp;" + runtime + "s";
         $(this.workspace.el).find(".workspace_results_info")
-            .html(info);
-        //Saiku.i18n.translate();
+            .html('<b>Rows:</b> ' + args.data.height + " <b>Columns:</b> " + args.data.width + " <b>Duration:</b> " + runtime + "s");
         $(this.el).html('<tr><td>Rendering ' + args.data.width + ' columns and ' + args.data.height + ' rows...</td></tr>');
 
         // Render the table without blocking the UI thread
@@ -337,12 +323,12 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
                     var cssclass = (same ? "row_null" : "row");
                     var colspan = 0;
 
-                    if (!isHeaderLowestLvl && (typeof nextHeader == "undefined" || nextHeader.value === "null")) {
+                    if (!isHeaderLowestLvl && nextHeader.value === "null") {
                         colspan = 1;
                         var group = header.properties.dimension;
                         var level = header.properties.level;
                         var groupWidth = (group in rowGroups ? rowGroups[group].length - rowGroups[group].indexOf(level) : 1);
-                        for (var k = col + 1; colspan < groupWidth && k <= (lowestRowLvl+1) && data[row][k] !== "null"; k++) {
+                        for (var k = col + 1; colspan < groupWidth && data[row][k] !== "null"; k++) {
                             colspan = k - col;
                         }
                         col = col + colspan -1;
@@ -366,12 +352,6 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
                     var color = "";
                     var val = header.value;
                     var arrow = "";
-                    if (header.properties.hasOwnProperty('image')) {
-                        var img_height = header.properties.hasOwnProperty('image_height') ? " height='" + header.properties.image_height + "'" : "";
-                        var img_width = header.properties.hasOwnProperty('image_width') ? " width='" + header.properties.image_width + "'" : "";
-                        val = "<img " + img_height + " " + img_width + " style='padding-left: 5px' src='" + header.properties.image + "' border='0'>";
-                    }
-
                     if (header.properties.hasOwnProperty('style')) {
                         color = " style='background-color: " + header.properties.style + "' ";
                     }
@@ -398,9 +378,7 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
         if (this.workspace.query.get('type') == 'QM' && Settings.MODE != "view") {
             $(this.el).find('th.row, th.col').addClass('headerhighlight');
         }
-        Saiku.events.trigger('table:rendered', this);
     },
-
     cancel: function(event) {
         this.workspace.query.action.del("/result", {success: this.cancelled } );
     },
@@ -414,7 +392,6 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
     },
     
     error: function(args) {
-        $()
-        $(this.el).html('<tr><td>' + safe_tags_replace(args.data.error) + '</td></tr>');
+        $(this.el).html('<tr><td>' + args.data.error + '</td></tr>');
     }
 });

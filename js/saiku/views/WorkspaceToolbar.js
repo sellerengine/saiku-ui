@@ -30,7 +30,7 @@ var WorkspaceToolbar = Backbone.View.extend({
         // Maintain `this` in callbacks
         _.bindAll(this, "call", "reflect_properties", "run_query",
             "swap_axes_on_dropzones", "display_drillthrough","clicked_cell_drillthrough_export",
-            "clicked_cell_drillthrough","activate_buttons", "switch_to_mdx","post_mdx_transform", "spark_bar", "spark_line", "render_row_viz");
+            "clicked_cell_drillthrough","activate_buttons", "switch_to_mdx","post_mdx_transform");
         
         // Redraw the toolbar to reflect properties
         this.workspace.bind('properties:loaded', this.reflect_properties);
@@ -50,16 +50,15 @@ var WorkspaceToolbar = Backbone.View.extend({
         if (args != null && args.data && args.data.cellset && args.data.cellset.length > 0 ) {
             $(args.workspace.toolbar.el).find('.button')
                 .removeClass('disabled_toolbar');            
-
+            
             $(args.workspace.el).find("td.data").removeClass('cellhighlight').unbind('click');
             $(args.workspace.el).find(".table_mode").removeClass('on');
 
         } else {
             $(args.workspace.toolbar.el).find('.button')
                 .addClass('disabled_toolbar').removeClass('on');
-            $(args.workspace.el).find('.fields_list .disabled_toolbar').removeClass('disabled_toolbar');
             $(args.workspace.toolbar.el)
-                .find('.open, .run,.auto,.non_empty,.toggle_fields,.toggle_sidebar,.switch_to_mdx, .mdx')
+                .find('.run,.auto,.non_empty,.toggle_fields,.toggle_sidebar,.switch_to_mdx')
                 .removeClass('disabled_toolbar');
         }
         
@@ -104,6 +103,8 @@ var WorkspaceToolbar = Backbone.View.extend({
         
         if (properties['saiku.olap.query.drillthrough'] !== 'true') {
             $(this.el).find('.drillthrough, .drillthrough_export').addClass('disabled_toolbar');
+        } else {
+            $(this.el).find('.non_empty').removeClass('disabled_toolbar');
         }
 
         if (properties['org.saiku.query.explain'] !== 'true') {
@@ -116,17 +117,12 @@ var WorkspaceToolbar = Backbone.View.extend({
             $(this.el).find('.query_scenario').removeClass('disabled_toolbar');
             $(this.el).find('.drillthrough, .drillthrough_export').addClass('disabled_toolbar');
         }
-        if (properties['saiku.olap.query.limit'] == 'true' || properties['saiku.olap.query.filter'] == 'true') {
-            $(this.workspace.el).find('.fields_list_header').addClass('limit');
-        }
 
         if (this.workspace.query.get('formatter') !== "undefined" && this.workspace.query.get('formatter') == "flattened") {
             if (! $(this.el).find('.group_parents').hasClass('on')) {
                 $(this.el).find('.group_parents').addClass('on');
             }
         }
-
-        $(this.el).find(".spark_bar, .spark_line").removeClass('on');
         
 
     },
@@ -136,11 +132,6 @@ var WorkspaceToolbar = Backbone.View.extend({
             (new SaveQuery({ query: this.workspace.query })).render().open();
         }
     },
-
-    open_query: function(event) {
-            (new OpenDialog()).render().open();
-    },
-
     
     run_query: function(event) {
         this.workspace.query.run(true);
@@ -310,69 +301,17 @@ var WorkspaceToolbar = Backbone.View.extend({
             this.workspace.query.id + "/export/csv";
     },
 
-    export_pdf: function(event) {
-        window.location = Settings.REST_URL +
-            Saiku.session.username + "/query/" + 
-            this.workspace.query.id + "/export/pdf/" + this.workspace.query.formatter;
-    },
-
     switch_to_mdx: function(event) {
-        var self = this;
         $(this.workspace.el).find('.workspace_fields').hide();
         $(this.el).find('.auto, ,.toggle_fields, .query_scenario, .buckets, .non_empty, .swap_axis, .mdx, .switch_to_mdx').parent().hide();
         
 
         $(this.el).find('.run').attr('href','#run_mdx');
-        $(this.el).find('.run, .save, .open').removeClass('disabled_toolbar');
+        $(this.el).find('.run, .save').removeClass('disabled_toolbar');
 
         if (Settings.MODE != "view" && Settings.MODE != "table") {
-            $mdx_editor = $(this.workspace.el).find('.mdx_input');
-            $mdx_editor.width($(this.el).width()-50);
-            $(this.workspace.el).find('.workspace_editor .mdx_input, .workspace_editor .editor_info').removeClass('hide');
-            this.editor = ace.edit("mdx_editor");
-            this.editor.setShowPrintMargin(false);
-            this.editor.commands.addCommand({
-                name: 'runmdx',
-                bindKey: {win: 'Ctrl-Enter',  mac: 'Command-Enter'},
-                exec: function(editor) {
-                    self.run_mdx();
-                },
-                readOnly: true // false if this command should not apply in readOnly mode
-            });
-
-            var showPosition = function() {
-                var pos = self.editor.getCursorPosition();
-                $mdx_editor.parent().find('.editor_info').html("&nbsp; " + (pos.row +1) + ", " + pos.column);
-            }
-            this.editor.on('changeSelection', showPosition);
-            showPosition();
-
-             var heightUpdateFunction = function() {
-
-                // http://stackoverflow.com/questions/11584061/
-                var max_height = $(document).height() / 3;
-                var height = Math.floor(max_height / self.editor.renderer.lineHeight);
-                var screen_length = self.editor.getSession().getScreenLength() > height ? height : self.editor.getSession().getScreenLength();
-                var newHeight =
-                          screen_length
-                          * self.editor.renderer.lineHeight
-                          + self.editor.renderer.scrollBar.getWidth();
-
-                $mdx_editor.height(newHeight.toString() + "px");
-                self.editor.resize();
-                self.workspace.adjust();
-            };
-
-            heightUpdateFunction();
-
-            self.editor.focus();
-            self.editor.clearSelection();
-            self.editor.getSession().setValue("");
-            self.editor.getSession().on('change', heightUpdateFunction);
-
-            //this.editor.setTheme("ace/theme/crimson_editor");
-            this.editor.getSession().setMode("ace/mode/text");
-            
+            $(this.workspace.el).find('.workspace_editor .mdx_input').removeClass('hide');
+            $(this.workspace.el).find('.mdx_input').width($(this.el).width()-20);
         }
 
 
@@ -404,10 +343,7 @@ var WorkspaceToolbar = Backbone.View.extend({
 
         this.workspace.query.action.get("/mdx", { 
             success: function(model, response) {
-                //$(self.workspace.el).find(".mdx_input").val(response.mdx);
-                self.editor.setValue(response.mdx,0);
-                self.editor.focus();
-                self.editor.clearSelection();
+                $(self.workspace.el).find(".mdx_input").val(response.mdx);
                 self.workspace.query.action.post("/qm2mdx", { success: transformed } );
 
             }
@@ -416,74 +352,10 @@ var WorkspaceToolbar = Backbone.View.extend({
     },
 
     run_mdx: function(event) {
-        //var mdx = $(this.workspace.el).find(".mdx_input").val();
-         $(this.workspace.el).find(".mdx_input").height(150);
-        this.editor.resize();
-        var mdx = this.editor.getValue();
+        var mdx = $(this.workspace.el).find(".mdx_input").val();
         this.workspace.query.run(true, mdx);
     },
 
-    spark_bar: function(event) {
-        $(event.target).toggleClass('on');
-        $(this.el).find('.spark_line').removeClass('on');
-
-        $(this.workspace.table.el).find('td.spark').remove();
-        if ($(this.el).find('.spark_bar').hasClass('on')) {
-            _.delay(this.render_row_viz, 10, "spark_bar");
-        }
-    },
-
-    spark_line: function(event) {
-        $(event.target).toggleClass('on');
-        $(this.el).find('.spark_bar').removeClass('on');
-
-        $(this.workspace.table.el).find('td.spark').remove();
-        if ($(this.el).find('.spark_line').hasClass('on')) {
-            _.delay(this.render_row_viz, 10, "spark_line");
-        }
-    },
-
-    render_row_viz: function(type) {
-        $(this.workspace.table.el).find('tr').each(function(index, element) {
-            var rowData = [];
-            $(element).find('td.data div').each(function(i,data) {
-                var val = $(data).attr('alt');
-                val = (typeof val != "undefined" && val != "" && val != null && val  != "undefined") ? parseFloat(val) : 0;
-                rowData.push(val);
-            });
-            
-            $("<td class='data spark'>&nbsp;<div id='chart" + index + "'></div></td>").appendTo($(element));
-
-            var width = rowData.length * 9;
-
-                if (rowData.length > 0) {
-                    var vis = new pv.Panel()
-                        .canvas('chart' + index)
-                        .height(12)
-                        .width(width)
-                        .margin(0);
-
-                    if (type == "spark_bar") {
-                        vis.add(pv.Bar)
-                            .data(rowData)
-                            .left(pv.Scale.linear(0, rowData.length).range(0, width).by(pv.index))
-                            .height(pv.Scale.linear(0,_.max(rowData)).range(0, 12))
-                            .width(6)
-                            .bottom(0);        
-                    } else if (type == "spark_line") {
-                        width = width / 2;
-                        vis.width(width);
-                        vis.add(pv.Line)
-                            .data(rowData)
-                            .left(pv.Scale.linear(0, rowData.length - 1).range(0, width).by(pv.index))
-                            .bottom(pv.Scale.linear(rowData).range(0, 12))
-                            .strokeStyle("#000")
-                            .lineWidth(1);        
-                    }
-                    vis.render();
-                }
-        });
-    },
     explain_query: function(event) {
         var self = this;
         var explained = function(model, args) {
