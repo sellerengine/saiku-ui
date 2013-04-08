@@ -21,6 +21,9 @@ var Chart = Backbone.View.extend({
 
 	options: {},
 
+    /** each element should be: [ key, title, function ] */
+    extraCharts: [],
+
     getChartProperties: function(chartName) { 
         var self = this; 
         var ret = [];
@@ -153,10 +156,50 @@ var Chart = Backbone.View.extend({
 						"line" : {name: "Line Chart" },
 						"pie" : {name: "Pie Chart" },
 						"heatgrid" : {name: "Heat Grid" },
-						"sep1" : "-------",
-						//"chart_editor" : {name: "Chart Editor..." },
-						"show_table" : {name: "Show Table"}
+						"sep1" : "-------"
                 };
+                if (Chart.prototype.extraCharts.length > 0) {
+                    Chart.prototype.extraCharts.sort(function(a, b) {
+                            return a[1].localeCompare(b[1]);
+                    });
+                    for (var i = 0, m = Chart.prototype.extraCharts.length;
+                            i < m; i++) {
+                        var ec = Chart.prototype.extraCharts[i];
+                        citems[ec[0]] = { name: ec[1] };
+
+                        if (!Chart._extraCharts_init) {
+                            if (ec[0] in Chart.prototype) {
+                                throw new Error("Duplicate chart key: "
+                                        + ec[0]);
+                            }
+                            Chart.prototype[ec[0]] = (function(properCallback) {
+                                var redrawMyChart = function() {
+                                    //"this" is the proper reference to the
+                                    //current chart object.
+                                    //Ensure that on redraws, we'll keep using
+                                    //this overridden chart!
+                                    this._renderOverride = redrawMyChart;
+                                    try {
+                                        return properCallback(this);
+                                    }
+                                    catch (e) {
+                                        //The parent method catches all
+                                        //exceptions, so print the tb here.
+                                        if (e.stack) {
+                                            console.log("At: " + e.stack);
+                                        }
+                                        console.error(e);
+                                    }
+                                };
+                                return redrawMyChart;
+                            })(ec[2]);
+                        }
+                    }
+                    //Don't update the prototype again.
+                    Chart._extraCharts_init = true;
+                    citems["sep2"] = "-------";
+                }
+                citems["show_table"] = { name: "Show Table" };
 
             return {
                     callback: function(key, options) {
@@ -174,6 +217,10 @@ var Chart = Backbone.View.extend({
 						            'type'              : 'inline'
 						            }
 						        );
+                                // They've clicked on a chart, so remove the
+                                // render override, in case the newly clicked
+                                // isn't an extra chart.
+                                self._renderOverride = null;
                                 try {
 						            self[key]();
 						        } catch (e) { }
@@ -253,6 +300,12 @@ var Chart = Backbone.View.extend({
     
     render_quick: function() {
         if (! $(this.workspace.toolbar.el).find('.chart').hasClass('on')) {
+            return;
+        }
+
+        if (this._renderOverride) {
+            //We are using e.g. an extra chart
+            this._renderOverride();
             return;
         }
         

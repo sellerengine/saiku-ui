@@ -168,7 +168,7 @@ var Table = Backbone.View.extend({
             }
             else {
                 citems["dim_drill"] = {
-                        name: "Drill through",
+                        name: "Keep Only",
                         action: function() {
                                 self.workspace.drop_zones.dimension_drill(
                                         cell.properties.uniquename,

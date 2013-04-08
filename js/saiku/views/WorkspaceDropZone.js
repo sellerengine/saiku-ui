@@ -503,7 +503,7 @@ var WorkspaceDropZone = Backbone.View.extend({
         return true;
     },
     
-    move_dimension: function(event, ui, target) {
+    move_dimension: function(event, ui, target, callback) {
         if (! ui.item.hasClass('deleted')) {
             $axis = ui.item.parents('.fields_list_body');
 
@@ -521,10 +521,8 @@ var WorkspaceDropZone = Backbone.View.extend({
                 }
             });
             var index = dimensions.indexOf(dimension);
-
-            
-                this.workspace.query.move_dimension(dimension, 
-                    target, index);
+            this.workspace.query.move_dimension(dimension,
+                    target, index, callback);
         }
         
         // Prevent workspace from getting this event
@@ -593,6 +591,7 @@ var WorkspaceDropZone = Backbone.View.extend({
         if (ui.item.hasClass('dimension_drill')) {
             clone.addClass('dimension_drill');
         }
+        $.extend(clone.data(), ui.item.data());
         
 
         axis.find('.d_dimension a').each( function(index, element) {
@@ -686,15 +685,21 @@ var WorkspaceDropZone = Backbone.View.extend({
 
     dimension_drill: function(member_uniquename, dimension) {
         /** For the first element in ROWS, filter it on a single member and move
-            it to the front of FILTERS.
+            it to the back of FILTERS.
 
             dimension, if unspecified, defaults to the first "Row" in the
             current query.  Otherwise it should be the full dimension name (the
-            href component of links referring to it).
+            href component of links referring to it), or a jQuery object to the
+            .d_dimension element currently representing the dimension.
+
+            Note that this also moves the FIRST filter into the front of rows!
             */
         var self = this;
         var firstDimEl;
-        if (dimension) {
+        if (dimension && (dimension instanceof $)) {
+            firstDimEl = dimension;
+        }
+        else if (dimension) {
             firstDimEl = $('div.fields_list_body .d_dimension a[href="#'
                     + dimension + '"]', this.el).parents('.d_dimension');
         }
@@ -702,12 +707,24 @@ var WorkspaceDropZone = Backbone.View.extend({
             firstDimEl = $('div.fields_list_body.rows .d_dimension:first',
                     this.el);
         }
+        if (firstDimEl.hasClass('dimension_drill')) {
+            //No need to drill, it already is!
+            return;
+        }
+
         var updates = [];
         dimension = $('a', firstDimEl).attr('href').replace('#', '');
         var dimMember = new Member({}, {
             cube: this.workspace.selected_cube,
             dimension: dimension
         });
+
+        if (member_uniquename[0] !== '[') {
+            //If it starts with a square bracket, we assume it's actually
+            //the right unique name.  Otherwise, assume it's the "caption"
+            member_uniquename = dimMember.hierarchy + '.[' + member_uniquename
+                    + ']';
+        }
 
         //Step one - apply filtering on new element
         updates.push({
@@ -717,12 +734,19 @@ var WorkspaceDropZone = Backbone.View.extend({
             action: 'delete'
         });
         updates.push({
-            uniquename: dimMember.hierarchy + '.' + member_uniquename,
+            uniquename: member_uniquename,
             type: 'member',
             action: 'add'
         });
 
-        this.workspace.query.action.put('/axis/ROWS/dimension/' + dimMember.dimension, {
+        var currentState = 'ROWS';
+        var dimParent = firstDimEl.parents('div.fields_list_body');
+        if (dimParent.hasClass('columns')) {
+            currentState = 'COLUMNS';
+        }
+
+        this.workspace.query.action.put('/axis/' + currentState + '/dimension/'
+                + dimMember.dimension, {
             success: afterFilter,
             data: {
                 selections: JSON.stringify(updates)
@@ -730,19 +754,52 @@ var WorkspaceDropZone = Backbone.View.extend({
         });
 
         function afterFilter(model, response) {
-            self._manual_move(firstDimEl, 'FILTER');
+            //We're now "drilled", so add our class
             firstDimEl.addClass('dimension_drill');
+            firstDimEl.data('dimension_drill_origin', currentState);
+
+            //Should we move ourselves into "FILTER" and someone else into
+            //"ROWS"?
+            var firstFilterEl = $(
+                    'div.fields_list_body.filter .d_dimension:first', self.el);
+            if (firstFilterEl.length > 0
+                    && !firstFilterEl.hasClass('dimension_drill')) {
+                self._manual_move(firstDimEl, 'FILTER', true, nextMove);
+                function nextMove() {
+                    //Will also trigger the render
+                    self._manual_move(firstFilterEl, currentState);
+                }
+            }
+            else {
+                //Just re-draw, as we've updated the filter
+                self.workspace.query.run();
+            }
         }
     },
 
 
     dimension_undrill: function(event) {
         /** We have a drilled-through member in filters; undrill it!
+
+            event -- If null or undefined, undrill the last filter.
             */
         //Reverse a dimension drill for the given item.
         var self = this;
 
-        var $item = $(event.target).parents('.d_dimension');
+        var $item;
+        if (event) {
+            $item = $(event.target).parents('.d_dimension');
+            //Stop other handlers since we've handled it
+            event.stopImmediatePropagation();
+            event.preventDefault();
+        }
+        else {
+            $item = $('div.fields_list_body.filter .d_dimension:last', self.el);
+            if (!$item.hasClass('dimension_drill')) {
+                //We're done!  There's nothing to undrill here...
+                return false;
+            }
+        }
         var dimension = $('a', $item).attr('href').substring(1);
         var dimMember = new Member({}, {
             cube: this.workspace.selected_cube,
@@ -772,31 +829,60 @@ var WorkspaceDropZone = Backbone.View.extend({
         });
 
         function afterFilter(model, response) {
-            self._manual_move($item, 'ROWS');
             $item.removeClass('dimension_drill');
-        }
+            var itemSrc = $item.data('dimension_drill_origin') || 'ROWS';
+            var itemSrcLower = itemSrc.toLowerCase();
+            $item.removeData('dimension_drill_origin');
 
-        //Stop other handlers
-        event.stopImmediatePropagation();
-        return false;
+            //Not already in rows?  Move it up!  If we have something in rows
+            //already, move it down to the front of filters
+            if ($item.parents('.fields_list_body.' + itemSrcLower).length
+                    === 0) {
+                var currentRowEl = $('div.fields_list_body.' + itemSrcLower
+                        + ' .d_dimension:last', self.el);
+                if (currentRowEl.length !== 0) {
+                    self._manual_move(currentRowEl, 'FILTER', false, nextMove);
+                }
+                else {
+                    nextMove();
+                }
+                function nextMove() {
+                    //Will trigger the render
+                    self._manual_move($item, itemSrc);
+                }
+            }
+            else {
+                //It didn't move, just render
+                self.workspace.query.run();
+            }
+        }
     },
 
 
-    _manual_move: function(dimensionEl, target) {
+    _manual_move: function(dimensionEl, target, moveToEnd, callback) {
         /** Moves the given d_dimension element to another row.
+            NOTE - dimensionEl will be cloned when this method is finished.
             */
-        //This will automatically re-render the query when it is done; we
-        //simulate a UI move since this class lacks proper methods.
-        var fakePlace = $('<span></span>').prependTo(
+        //This will automatically re-render the query when it is done if a
+        //callback is not specified
+        //Note that we are simulating a UI move as this class lacks proper
+        //methods and keeps a lot of its state server side.
+        var method = $.fn.prependTo;
+        if (moveToEnd) {
+            method = $.fn.appendTo;
+        }
+        var fakePlace = method.call(
+                $('<span></span>'),
                 $('div.fields_list_body.' + target.toLowerCase() + ' ul',
-                this.el)
+                    this.el)
         );
-        dimensionEl.detach();
+        dimensionEl.insertBefore(fakePlace);
         this.move_dimension(
             new $.Event({ target: dimensionEl }),
             { item: dimensionEl, placeholder: fakePlace },
-            target
+            target,
+            callback
         );
-        fakePlace.replaceWith(dimensionEl);
+        fakePlace.remove();
     }
 });
