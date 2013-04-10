@@ -22,11 +22,13 @@ function makeHsZoom(chart) {
         chartEl.text("Failed to parse data: " + e);
         return;
     }
+
+    d3f = d3.format(',');
     chartEl.highcharts("StockChart", {
         chart: { width: options.width, height: options.height },
         yAxis: {
             labels: {
-                formatter: function() { return this.value.toPrecision(5); }
+                formatter: function() { return d3f(this.value); }
             },
             plotLines: [
                 { value: 0, width: 2, color: 'silver' }
@@ -89,7 +91,7 @@ function _makeHsZoom_parseData(chart) {
         }
 
         for (var j = 1, k = data.length; j < k; j++) {
-            series[j - 1].data.push(data[j]);
+            series[j - 1].data.push([ ts, data[j] ]);
         }
     }
 
