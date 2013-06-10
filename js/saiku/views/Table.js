@@ -37,7 +37,7 @@ var Table = Backbone.View.extend({
     clicked_cell: function(event) {
         var self = this;
         
-        if (this.workspace.query.get('type') != 'QM' || Settings.MODE == "view") {
+        if (this.workspace.query.get('type') != 'QM' || Settings.MODE == "table") {
             return false;
         }
 
@@ -45,9 +45,9 @@ var Table = Backbone.View.extend({
             $(event.target).find('div') : $(event.target);
         
     $body = $(document);
-    $body.off('.contextMenu .contextMenuAutoHide');
-    $('.context-menu-list').remove();
-    $.contextMenu('destroy');
+    //$body.off('.contextMenu .contextMenuAutoHide');
+    //$('.context-menu-list').remove();
+    $.contextMenu('destroy', '.row, .col');
     $.contextMenu({
         appendTo: $target,
         selector: '.row, .col', 
@@ -87,9 +87,15 @@ var Table = Backbone.View.extend({
                 }       
             );
 
+            var children_payload = cell.properties.uniquename;
+
             var levels = [];
             var items = {};
             var dimensions = Saiku.session.sessionworkspace.dimensions[cube].get('data');
+            if (typeof dimensions == "undefined") {
+                Saiku.session.sessionworkspace.dimensions[cube].fetch({async : false});
+                dimensions = Saiku.session.sessionworkspace.dimensions[cube].get('data');
+            }
             var dimsel = {};
             var used_levels = [];
 
@@ -142,6 +148,7 @@ var Table = Backbone.View.extend({
                 }
             });
             items["keeponly"] = { payload: keep_payload }
+            items["getchildren"] = { payload: children_payload }
             
 
             
@@ -168,7 +175,7 @@ var Table = Backbone.View.extend({
             }
             else {
                 citems["dim_drill"] = {
-                        name: "Keep Only",
+                        name: "Drill down",
                         action: function() {
                                 self.workspace.drop_zones.dimension_drill(
                                         cell.properties.uniquename,
@@ -176,6 +183,7 @@ var Table = Backbone.View.extend({
                                 );
                         }
                 };
+                citems["getchildren"] = {name: "Show Children", payload: children_payload }
                 citems["fold1key"] = {
                         name: "Include Level",
                         items: lvlitems("include-")
@@ -196,35 +204,24 @@ var Table = Backbone.View.extend({
                         return;
                     }
 
-                    self.workspace.query.action.put('/axis/' + axis + '/dimension/' + d, { 
-                        success: function() {
-                            var formatter = self.workspace.query.get('formatter');
-                            self.workspace.query.clear();
-                            self.workspace.query.set({ 'formatter' : formatter });
-                            self.workspace.query.fetch({ success: function() {
-                                
-                                $(self.workspace.el).find('.fields_list_body ul').empty();
-                                $(self.workspace.dimension_list.el).find('.parent_dimension a.folder_collapsed').removeAttr('style');
-                                
-                                $(self.workspace.dimension_list.el).find('.parent_dimension ul li')
-                                    .draggable('enable')
-                                    .css({ fontWeight: 'normal' });
-
-                                $(self.workspace.measure_list.el).find('a.measure').parent()
-                                    .draggable('enable')
-                                    .css({ fontWeight: 'normal' });
-
-                                self.workspace.populate_selections(self.workspace.measure_list.el);
-                                $(self.workspace.el).find('.fields_list_body ul li')
-                                    .removeClass('ui-draggable-disabled ui-state-disabled')
-                                    .css({ fontWeight: 'normal' });
-
-                             }});
-
-                        },
-                        data: {
-                            selections: "[" + items[key].payload + "]"
-                        }
+                    var url = '/axis/' + axis + '/dimension/' + d;
+                    var children = false;
+                    if (key.indexOf("children") > 0) {
+                        url = '/axis/' + axis + '/dimension/' + d + "/children";
+                        children = true;
+                    }
+                    if (children) {
+                        self.workspace.query.set({ 'formatter' : 'flat' });
+                    }
+                    self.workspace.query.action.put(url, { success: self.workspace.sync_query,
+                        data: children ?
+                            {
+                                member: items[key].payload
+                            }
+                            :
+                            {
+                                selections: "[" + items[key].payload + "]"
+                            }
                     });
                     
                 },
@@ -242,15 +239,20 @@ var Table = Backbone.View.extend({
 
         $(this.workspace.el).find(".workspace_results_info").empty();
 
+        if (typeof args == "undefined" || typeof args.data == "undefined" || !$(this.el).is(':visible')) {
+            return;
+        }
+
         if (args.data != null && args.data.error != null) {
             return this.error(args);
         }
 
         
         // Check to see if there is data
-        if (args.data.cellset && args.data.cellset.length === 0) {
+        if (args.data == null || (args.data.cellset && args.data.cellset.length === 0)) {
             return this.no_results(args);
         }
+
         
         // Clear the contents of the table
         var cdate = new Date().getHours() + ":" + new Date().getMinutes();
@@ -267,6 +269,7 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
                 + "&nbsp; / &nbsp;" + runtime + "s";
         $(this.workspace.el).find(".workspace_results_info")
             .html(info);
+        this.workspace.adjust();
         //Saiku.i18n.translate();
         $(this.el).html('<tr><td>Rendering ' + args.data.width + ' columns and ' + args.data.height + ' rows...</td></tr>');
 
@@ -280,6 +283,7 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
     },
 
     process_data: function(data) {
+
         var contents = "";
         var table = data ? data : [];
         var colSpan;
@@ -417,7 +421,7 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
         if (this.workspace.query.get('type') == 'QM' && Settings.MODE != "view") {
             $(this.el).find('th.row, th.col').addClass('headerhighlight');
         }
-        Saiku.events.trigger('table:rendered', this);
+        this.workspace.trigger('table:rendered', this);
     },
 
     cancel: function(event) {
@@ -425,15 +429,14 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
     },
     
     cancelled: function(args) {
-        $(this.el).html('<tr><td>No results</td></tr>');
+        $(this.el).html('<tr><td><span class="processing_image">&nbsp;&nbsp;</span> <span class="i18n">Canceling Query...</span> </td></tr>');
     },
 
     no_results: function(args) {
-        $(this.el).html('<tr><td>No results</td></tr>');
+        $(this.el).html('<tr><td><span class="i18n">No Results</span> </td></tr>');
     },
     
     error: function(args) {
-        $()
         $(this.el).html('<tr><td>' + safe_tags_replace(args.data.error) + '</td></tr>');
     }
 });

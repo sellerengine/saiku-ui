@@ -26,38 +26,11 @@ pv.have_VML = (function (d,a,b) {
   return b ? typeof b.adj === 'object' : true;
 })(document);
 
-// MSIE does not support indexOf on arrays
-if (!Array.prototype.indexOf) {
-  Array.prototype.indexOf = function (s, from) {
-    var n = this.length >>> 0,
-        i = (!isFinite(from) || from < 0) ? 0 : (from > this.length) ? this.length : from;
-    for (; i < n; i++) { if (this[i] === s) { return i; } }
-    return -1;
-  };
-}
-
 // only run if we need to
 if (!pv.have_SVG && pv.have_VML){ (function(){
 
 if (typeof Date.now !== 'function') {
   Date.now = function () { return new Date() * 1; };
-}
-
-if (!window.getComputedStyle) {
-    window.getComputedStyle = function(el, pseudo) {
-        this.el = el;
-        this.getPropertyValue = function(prop) {
-            var re = /(\-([a-z]){1})/g;
-            if (prop == 'float') prop = 'styleFloat';
-            if (re.test(prop)) {
-                prop = prop.replace(re, function () {
-                    return arguments[2].toUpperCase();
-                });
-            }
-            return el.currentStyle[prop] ? el.currentStyle[prop] : null;
-        };
-        return this;
-    };
 }
 
 var vml = {
@@ -847,23 +820,28 @@ pv.VmlScene.removeSiblings = function(e) {
   }
 };
 
-pv.VmlScene.removeFillStyleDefinitions = function(/*scenes*/){};
-
 pv.VmlScene.addFillStyleDefinition = function(/*scenes, fill*/){};
 
-//Not supported - exists for svg custom attributes
-pv.VmlScene.setAttributes = function(/*e, attributes*/){};
+// Done differently
+pv.VmlScene.setAttributes = function(/*e, attributes*/) {};
 
-pv.VmlScene.setStyle = function(e, style){
+pv.VmlScene.setStyle = function(e, style) {
+    var prevStyle = e.__style__;
+    if(prevStyle === style) { prevStyle = null; }
+    
     var eStyle = e.style;
     for (var name in style) {
         var value = style[name];
-        if (value == null) {
-            eStyle.removeAttribute(name);   // cssText 
-        } else { 
-            eStyle[name] = value;
+        if(!prevStyle || (value !== prevStyle[name])) {
+            if (value == null) {
+                eStyle.removeAttribute(name);   // cssText 
+            } else { 
+                eStyle[name] = value;
+            }
         }
     }
+    
+    e.__style__ = style;
 };
 
 pv.VmlScene.append = function(e, scenes, index) {

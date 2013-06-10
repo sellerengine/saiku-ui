@@ -18,6 +18,10 @@
  * Holds the resultset for a query, and notifies plugins when resultset updated
  */
 var Result = Backbone.Model.extend({
+
+    result: null,
+    firstRun: false,
+    
     initialize: function(args, options) {
         // Keep reference to query
         this.query = options.query;
@@ -25,6 +29,7 @@ var Result = Backbone.Model.extend({
     
     parse: function(response) {
         this.result = response;
+        this.firstRun = true;
         this.query.workspace.trigger('query:result', {
             workspace: this.query.workspace,
             data: response
@@ -32,6 +37,10 @@ var Result = Backbone.Model.extend({
         
         // Show the UI if hidden
         Saiku.ui.unblock();
+    },
+
+    hasRun: function() {
+        return this.firstRun;
     },
     
     lastresult: function () {
