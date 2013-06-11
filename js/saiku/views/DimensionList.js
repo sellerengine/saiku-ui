@@ -125,9 +125,7 @@ var DimensionList = Backbone.View.extend({
         if ($(this.workspace.el).find(".workspace_fields ul li a[href^='" + hierarchy + "']:first").length > 0) {
             $axis = $(this.workspace.el).find(".workspace_fields ul li a[href^='" + hierarchy + "']").parent().parent();
         } else {
-            $axis = $(this.workspace.el).find(".columns ul li").length > 0 ?
-                $(this.workspace.el).find(".rows ul") :
-                $(this.workspace.el).find(".columns ul");
+            $axis = $(this.workspace.el).find(".rows ul");
         }
         $target = $(event.target).parent().clone()
             .appendTo($axis);
