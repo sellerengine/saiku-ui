@@ -1403,6 +1403,9 @@ a.disabled_toolbar:hover {
     height: 32px;
 }
 
+.query_toolbar li.extra_chart a.button {
+    height: auto;
+}
 
 .query_toolbar a.bar {
     background: url('../../../images/chart/gray/bar.png') no-repeat 30px 7px;

@@ -256,10 +256,41 @@ var Chart = Backbone.View.extend({
             if ($(this.workspace.querytoolbar.el).find('.render_chart').hasClass('on')) {
                 $(this.el).find('.canvas_wrapper').hide();
             }
-
-
         }
+
+        // They've clicked on a chart, so remove the
+        // render override, in case the newly clicked
+        // isn't an extra chart.
+        this._renderOverride = null;
+        if (this._extraChart) {
+            this.extraChartReset();
+        }
+
         return false;
+    },
+
+    extraChartReset: function(makeExtraChart, showTable) {
+        //Reset defaults; no extra chart, show the main chart, and
+        //hide the table.
+        if (this._extraChart) {
+            this._extraChart.remove();
+            this._extraChart = null;
+        }
+        if (!showTable) {
+            $(this.el).nextAll('table').css('display', 'none');
+        }
+        else {
+            $(this.el).nextAll('table').css('display', '');
+        }
+
+        if (makeExtraChart) {
+            $(this.el).hide();
+            this._extraChart = $('<div></div>').insertAfter(this.el);
+            return this._extraChart;
+        }
+        else if (!$(this.el).is(':visible')) {
+            $(this.el).show();
+        }
     },
 
     stackedBar: function() {
@@ -591,6 +622,7 @@ $(this.el).prepend(" pvc (" + (this.med3 - this.med) + ")" );
     },
     
      process_data: function(args) {
+        this._initExtraCharts();
         this.data = {};
         this.data.resultset = [];
         this.data.metadata = [];
@@ -698,6 +730,57 @@ $(this.el).prepend(" | chart process");
         } else {
             $(this.el).find('.canvas_wrapper').text("No results").show();
             this.processing.hide();
+        }
+    },
+
+    _initExtraCharts: function() {
+        //Chart stuff...
+        if (!Chart._extraCharts_init) {
+            var $chartOptions = $('ul.options.chart');
+            Chart.prototype.extraCharts.sort(function(a, b) {
+                    return a[1].localeCompare(b[1]);
+            });
+            for (var i = 0, m = Chart.prototype.extraCharts.length;
+                    i < m; i++) {
+                var ec = Chart.prototype.extraCharts[i];
+                var domSrc = '<li class="extra_chart"><a href="#{0}"\
+                        class="i18n {0} chartoption button"\
+                        title="{1}">{1}</a></li>';
+                domSrc = domSrc.replace(/\{0\}/g, ec[0])
+                        .replace(/\{1\}/g, ec[1]);
+                var $ec = $(domSrc);
+                $ec.appendTo($chartOptions);
+
+                if (ec[0] in Chart.prototype) {
+                    throw new Error("Duplicate chart key: "
+                            + ec[0]);
+                }
+                Chart.prototype[ec[0]] = (function(ec) {
+                    var redrawMyChart = function() {
+                        this.workspace.query.setProperty('saiku.ui.render.type',
+                                ec[0]);
+                        //"this" is the proper reference to the
+                        //current chart object.
+                        //Ensure that on redraws, we'll keep using
+                        //this overridden chart!
+                        this._renderOverride = redrawMyChart;
+                        try {
+                            return ec[2](this);
+                        }
+                        catch (e) {
+                            //The parent method catches all
+                            //exceptions, so print the tb here.
+                            if (e.stack) {
+                                console.log("At: " + e.stack);
+                            }
+                            console.error(e);
+                        }
+                    };
+                    return redrawMyChart;
+                })(ec);
+            }
+            //Don't update the prototype again.
+            Chart._extraCharts_init = true;
         }
     }
 });

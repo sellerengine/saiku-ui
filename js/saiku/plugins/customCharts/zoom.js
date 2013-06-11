@@ -2,10 +2,7 @@
 Chart.prototype.extraCharts.push([ 'hs-zoom', 'Zoom Chart (rows should be time dimension)', makeHsZoom ]);
 
 function makeHsZoom(chart) {
-    var chartEl = $(chart.el).empty();
-    chartEl.css('display', '');
-    //DO show the tabular results as well.
-    chartEl.nextAll('table').css('display', '');
+    var chartEl = chart.extraChartReset(true, true);
 
     var options = {
         canvas: chart.id,
@@ -62,7 +59,7 @@ function _makeHsZoom_parseData(chart) {
     //Grab from meta data; first is our time data, all others are data sets.
     //This only works when we have ONE row information!
     if (chart.data.metadata[0].colIndex !== 0
-            || chart.data.metadata[1].colIndex !== 2) {
+            || chart.data.metadata[1].colIndex > 2) {
         //This implies that the second cell is still header information, meaning
         //there is more than 1 row of information.
         throw new Error("It looks like you maybe don't have only one element, "

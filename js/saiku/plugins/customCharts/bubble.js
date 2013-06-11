@@ -2,10 +2,6 @@
 Chart.prototype.extraCharts.push([ 'bubble', 'Bubble Chart', makeBubbles ]);
 
 function makeBubbles(chart) {
-    $(chart.el).css('display', '');
-    //DO show the tabular results as well.
-    $(chart.el).nextAll('table').css('display', '');
-
     var options = {
         canvas: chart.id,
         width: $(chart.workspace.el).find('.workspace_results').width() - 40,
@@ -24,14 +20,17 @@ function makeBubbles(chart) {
             || !$(chart._d3_svg[0]).is(':visible')
             || $(chart._d3_svg[0]).attr('class') !== myClass
             ) {
-        $(chart.el).empty();
-        chart._d3_svg = d3.select(chart.el).append("svg")
+        var extraEl = chart.extraChartReset(true, true);
+        chart._d3_svg = d3.select(extraEl[0]).append("svg")
             .attr("width", options.width)
             .attr("height", options.height)
             .attr("class", myClass);
         chart._d3_color = d3.scale.category20c();
     }
     var svg = chart._d3_svg;
+
+    //DO show the tabular results
+    $(chart.el).nextAll('table').css('display', '');
 
     var diameter = Math.min(options.width, options.height);
     var format = d3.format(",");
