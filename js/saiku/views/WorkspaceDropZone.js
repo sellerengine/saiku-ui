@@ -761,7 +761,8 @@ var WorkspaceDropZone = Backbone.View.extend({
         }
         else if (dimension) {
             firstDimEl = $('div.fields_list_body .d_dimension a[href="#'
-                    + dimension + '"]', this.el).parents('.d_dimension');
+                    + encodeURI(dimension) + '"]',
+                    this.el).parents('.d_dimension');
         }
         else {
             firstDimEl = $('div.fields_list_body.rows .d_dimension:first',
