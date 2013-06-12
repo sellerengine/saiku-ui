@@ -284,17 +284,27 @@ var Chart = Backbone.View.extend({
             $(this.el).nextAll('table').css('display', '');
         }
 
+        var self = this;
         if (makeExtraChart) {
-            this._extraChart
-                    .css({ display: '', opacity: 0 })
-                    .animate({ opacity: 1 }, 200);
             this._extraChart.next().css('display', 'none');
+            self._extraChart.css({ display: '', opacity: 0 }).stop();
+            //Let the chart render, THEN start the fade in animation.  Causes
+            //less jitter.
+            setTimeout(function() {
+                self._extraChart
+                        .stop()
+                        .animate({ opacity: 1 }, 200);
+            }, 0);
         }
         else if (this._extraChart.is(':visible')) {
             this._extraChart.css('display', 'none');
-            this._extraChart.next()
-                    .css({ display: '', opacity: 0 })
-                    .animate({ opacity: 1 }, 200);
+            this._extraChart.next().css({ display: '', opacity: 0 }).stop();
+            //Same as above
+            setTimeout(function() {
+                self._extraChart.next()
+                        .stop()
+                        .animate({ opacity: 1 }, 200);
+            }, 0);
         }
         return this._extraChart;
     },
