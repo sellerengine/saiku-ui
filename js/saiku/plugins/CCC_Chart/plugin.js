@@ -272,10 +272,11 @@ var Chart = Backbone.View.extend({
     extraChartReset: function(makeExtraChart, showTable) {
         //Reset defaults; no extra chart, show the main chart, and
         //hide the table.
-        if (this._extraChart) {
-            this._extraChart.remove();
-            this._extraChart = null;
+        if (!this._extraChart) {
+            this._extraChart = $('<div></div>').prependTo(this.el);
         }
+        this._extraChart.empty();
+
         if (!showTable) {
             $(this.el).nextAll('table').css('display', 'none');
         }
@@ -284,13 +285,18 @@ var Chart = Backbone.View.extend({
         }
 
         if (makeExtraChart) {
-            $(this.el).hide();
-            this._extraChart = $('<div></div>').insertAfter(this.el);
-            return this._extraChart;
+            this._extraChart
+                    .css({ display: '', opacity: 0 })
+                    .animate({ opacity: 1 }, 200);
+            this._extraChart.next().css('display', 'none');
         }
-        else if (!$(this.el).is(':visible')) {
-            $(this.el).show();
+        else if (this._extraChart.is(':visible')) {
+            this._extraChart.css('display', 'none');
+            this._extraChart.next()
+                    .css({ display: '', opacity: 0 })
+                    .animate({ opacity: 1 }, 200);
         }
+        return this._extraChart;
     },
 
     stackedBar: function() {
@@ -541,6 +547,7 @@ var Chart = Backbone.View.extend({
         if (this._renderOverride) {
             //We are using e.g. an extra chart
             this._renderOverride();
+            this.processing.hide();
             return;
         }
         
