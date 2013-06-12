@@ -735,7 +735,9 @@ $(this.el).prepend(" | chart process");
 
     _initExtraCharts: function() {
         //Chart stuff...
-        if (!Chart._extraCharts_init) {
+        if (!Chart._extraCharts_init
+                || (Chart.prototype.extraCharts.length > 0
+                    && $('ul.options.chart .extra_chart').length === 0)) {
             var $chartOptions = $('ul.options.chart');
             Chart.prototype.extraCharts.sort(function(a, b) {
                     return a[1].localeCompare(b[1]);
@@ -743,6 +745,7 @@ $(this.el).prepend(" | chart process");
             for (var i = 0, m = Chart.prototype.extraCharts.length;
                     i < m; i++) {
                 var ec = Chart.prototype.extraCharts[i];
+                console.log("Adding " + ec[0]);
                 var domSrc = '<li class="extra_chart"><a href="#{0}"\
                         class="i18n {0} chartoption button"\
                         title="{1}">{1}</a></li>';
@@ -751,7 +754,8 @@ $(this.el).prepend(" | chart process");
                 var $ec = $(domSrc);
                 $ec.appendTo($chartOptions);
 
-                if (ec[0] in Chart.prototype) {
+                //Ensure there's no key overlap
+                if ( !Chart._extraCharts_init && ec[0] in Chart.prototype) {
                     throw new Error("Duplicate chart key: "
                             + ec[0]);
                 }
