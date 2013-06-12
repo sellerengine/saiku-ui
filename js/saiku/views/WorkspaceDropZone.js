@@ -783,7 +783,7 @@ var WorkspaceDropZone = Backbone.View.extend({
         if (member_uniquename[0] !== '[') {
             //If it starts with a square bracket, we assume it's actually
             //the right unique name.  Otherwise, assume it's the "caption"
-            member_uniquename = dimMember.hierarchy + '.[' + member_uniquename
+            member_uniquename = dimMember.level + '.[' + member_uniquename
                     + ']';
         }
 
