@@ -70,9 +70,7 @@ function _makeHsZoom_parseData(chart) {
         //This is a hack right now, but due to our layout of measures at the
         //end of columns, and the handling in CCC_Chart/plugin.js, we'll have
         //a slash-joined name as our column.
-        var nameNoMeasures = col.colName.substring(0,
-                col.colName.lastIndexOf('/'));
-        series.push({ name: nameNoMeasures, data: [] });
+        series.push({ name: col.colName, data: [] });
     }
     var dtParse = /(\d\d\d\d)-(\d\d)-(\d\d)(T(\d\d):(\d\d):(\d\d))?.*/;
     for (var i = 0, m = chart.data.resultset.length; i < m; i++) {
