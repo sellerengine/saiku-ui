@@ -8,13 +8,6 @@ function makeBubbles(chart) {
         height: $(chart.workspace.el).find('.workspace_results').height() - 40
     };
 
-    if (chart.data.metadata.length !== 2) {
-        $(chart.el).text("Bubble chart requires exactly one measure in the "
-                + "columns section, and one dimension in the rows.  Any "
-                + "drillable dimensions should go in filters.");
-        return;
-    }
-
     var myClass = "bubble";
     if (!chart._d3_svg
             || !$(chart._d3_svg[0]).is(':visible')
@@ -28,6 +21,14 @@ function makeBubbles(chart) {
         chart._d3_color = d3.scale.category20c();
     }
     var svg = chart._d3_svg;
+
+    if (chart.data.metadata.length !== 2) {
+        chart.extraChartReset(true, true).text(
+                "Bubble chart requires exactly one measure in the "
+                + "columns section, and one dimension in the rows.  Any "
+                + "drillable dimensions should go in filters.");
+        return;
+    }
 
     //DO show the tabular results
     $(chart.el).nextAll('table').css('display', '');
