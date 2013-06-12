@@ -5,7 +5,7 @@ function makeHsZoom(chart) {
     var chartEl = chart.extraChartReset(true, true);
 
     var options = {
-        canvas: chart.id,
+        canvas: chartEl[0],
         width: $(chart.workspace.el).find('.workspace_results').width() - 40,
         height: $(chart.workspace.el).find('.workspace_results').height() - 40
     };
@@ -36,7 +36,9 @@ function makeHsZoom(chart) {
                 events: {
                     click: function(e) {
                         //this === series
-                        chart.workspace.drop_zones.dimension_drill(this.name,
+                        chart.workspace.drop_zones.dimension_drill(
+                                this.name.substring(
+                                    this.name.lastIndexOf('/') + 1),
                                 $('div.fields_list_body.columns .d_dimension:first',
                                     chart.workspace.drop_zones.el));
                     }
