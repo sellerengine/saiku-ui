@@ -819,6 +819,10 @@ var WorkspaceDropZone = Backbone.View.extend({
             firstDimEl.addClass('dimension_drill');
             firstDimEl.data('dimension_drill_origin', currentState);
 
+            DimensionDrillCrumbs.crumbs.add({ uniqueName: member_uniquename,
+                    dimMember: dimMember, dimensionEl: firstDimEl,
+                    href: '#' + dimension });
+
             //Should we move ourselves into "FILTER" and someone else into
             //"ROWS"?
             var firstFilterEl = $(
@@ -839,7 +843,7 @@ var WorkspaceDropZone = Backbone.View.extend({
     },
 
 
-    dimension_undrill: function(event) {
+    dimension_undrill: function(event, callback) {
         /** We have a drilled-through member in filters; undrill it!
 
             event -- If null or undefined, undrill the last filter.
@@ -849,16 +853,34 @@ var WorkspaceDropZone = Backbone.View.extend({
 
         var $item;
         if (event) {
-            $item = $(event.target).parents('.d_dimension');
+            $item = $(event.target);
+            if (!$item.is('.d_dimension')) {
+                $item = $(event.target).parents('.d_dimension');
+            }
+            //See if it's been cloned
+            if ($item.parent().length === 0) {
+                $item = $('div.fields_list_body .d_dimension a[href="'
+                        + $('a', $item).attr('href') + '"]')
+                        .parents('.d_dimension');
+            }
             //Stop other handlers since we've handled it
             event.stopImmediatePropagation();
             event.preventDefault();
         }
         else {
-            $item = $('div.fields_list_body.filter .d_dimension:last', self.el);
-            if (!$item.hasClass('dimension_drill')) {
-                //We're done!  There's nothing to undrill here...
-                return false;
+            //Very last drill-through - on the row
+            $item = $(
+                    'div.fields_list_body.rows '
+                        + '.d_dimension:last.dimension_drill',
+                    self.el);
+            if ($item.length === 0) {
+                //What about filters?
+                $item = $('div.fields_list_body.filter .d_dimension:last',
+                        self.el);
+                if (!$item.hasClass('dimension_drill')) {
+                    //We're done!  There's nothing to undrill here...
+                    return false;
+                }
             }
         }
         var dimension = $('a', $item).attr('href').substring(1);
@@ -895,6 +917,13 @@ var WorkspaceDropZone = Backbone.View.extend({
             var itemSrcLower = itemSrc.toLowerCase();
             $item.removeData('dimension_drill_origin');
 
+            DimensionDrillCrumbs.crumbs.each(function(crumb) {
+                if (crumb.get("dimMember").level === dimMember.level) {
+                    DimensionDrillCrumbs.crumbs.remove(crumb);
+                    return;
+                }
+            });
+
             //Not already in rows?  Move it up!  If we have something in rows
             //already, move it down to the front of filters
             if ($item.parents('.fields_list_body.' + itemSrcLower).length
@@ -909,12 +938,13 @@ var WorkspaceDropZone = Backbone.View.extend({
                 }
                 function nextMove() {
                     //Will trigger the render
-                    self._manual_move($item, itemSrc);
+                    self._manual_move($item, itemSrc, false, callback);
                 }
             }
             else {
                 //It didn't move, just render
                 self.workspace.query.run();
+                callback && callback();
             }
         }
     },

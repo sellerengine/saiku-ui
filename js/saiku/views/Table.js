@@ -272,7 +272,8 @@ var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
                 + " x " + args.data.height 
                 + "&nbsp; / &nbsp;" + runtime + "s";
         $(this.workspace.el).find(".workspace_results_info")
-            .html(info);
+            .html(info)
+            .prepend(new DimensionDrillCrumbs().el);
         this.workspace.adjust();
         //Saiku.i18n.translate();
         $(this.el).html('<tr><td>Rendering ' + args.data.width + ' columns and ' + args.data.height + ' rows...</td></tr>');

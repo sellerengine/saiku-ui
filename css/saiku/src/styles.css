@@ -652,6 +652,22 @@ span.clear_axis {
     background: -moz-linear-gradient(top, #e0f9df 0%, #d2f5d2 100%);
     border: 1px solid #5ac055;
 }
+
+.dimension_drill_crumbs {
+    margin-right: 1.5em;
+}
+.dimension_drill_crumbs .header {
+    font-weight: bold;
+}
+.dimension_drill_crumbs .crumb {
+    text-decoration: underline;
+    cursor: pointer;
+    margin-right: 0.5em;
+}
+.dimension_drill_crumbs .crumb:hover {
+    opacity: 0.5;
+}
+
 .d_measure {
     background: #ffe8e8;
     background: -webkit-gradient(linear, left top, left bottom, from(#fcf5f5), to(#fad9d9));
