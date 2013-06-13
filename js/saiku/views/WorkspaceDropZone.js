@@ -76,7 +76,7 @@ var WorkspaceDropZone = Backbone.View.extend({
             return false;
         }
         $target =  $(event.target).hasClass('limit') ? $(event.target) : $(event.target).parent();
-        $axis = $target.siblings('.fields_list_body');
+        var $axis = $target.siblings('.fields_list_body');
         var source = "";
         var target = "ROWS";
         if ($axis.hasClass('rows')) { target = "ROWS";  }
@@ -388,8 +388,8 @@ var WorkspaceDropZone = Backbone.View.extend({
             if (this.workspace.query.get('type') != 'QM' || Settings.MODE == "view") {
                 return false;
             }
-            $target =  $(event.target);
-            $axis = $target.siblings('.fields_list_body');
+            var $target =  $(event.target);
+            var $axis = $target.siblings('.fields_list_body');
             var source = "";
             var target = "";
             if ($axis.hasClass('rows')) { target = "ROWS";  }
@@ -409,7 +409,7 @@ var WorkspaceDropZone = Backbone.View.extend({
     },
 
     sort_measure: function(event, ui) {
-        $axis = $(event.target).parent().parents('.fields_list_body');
+        var $axis = $(event.target).parent().parents('.fields_list_body');
         var source = "";
         var target = "ROWS";
         
