@@ -53,7 +53,7 @@ var Table = Backbone.View.extend({
         selector: '.row, .col', 
         ignoreRightClick: true,
          build: function($trigger, e) {
-            $target = $(e.currentTarget).find('div');
+            var $target = $(e.currentTarget).find('div');
             var axis = $(e.currentTarget).hasClass('rows') ? "ROWS" : "COLUMNS"
             var pos = $target.attr('rel').split(':');
             var row = parseInt(pos[0])
@@ -69,11 +69,10 @@ var Table = Backbone.View.extend({
             var d = cell.properties.dimension;
             var h = cell.properties.hierarchy;
             var l = cell.properties.level;
-            var hrefH = h;
-            if (hrefH[0] !== '[') {
-                hrefH = '[' + h + ']';
+            if (h[0] !== '[') {
+                h = '[' + h + ']';
             }
-            var hrefName = [ d, 'hierarchy', hrefH, l ].join('/');
+            var hrefName = [ d, 'hierarchy', h, l ].join('/');
 
             var keep_payload = JSON.stringify(
                 {
@@ -164,7 +163,7 @@ var Table = Backbone.View.extend({
                     }
                 }
                 return ritems;
-            }
+            };
 
             var member = $target.html();
 
@@ -203,7 +202,7 @@ var Table = Backbone.View.extend({
             }
             return {
                 callback: function(key, options) {
-                    if (citems[key].action) {
+                    if (citems.hasOwnProperty(key) && citems[key].action) {
                         citems[key].action();
                         return;
                     }
