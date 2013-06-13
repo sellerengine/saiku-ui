@@ -1,6 +1,6 @@
 
 var DimensionDrillCrumbs = Backbone.View.extend({
-    tagName: "span",
+    tagName: "div",
 
     className: "dimension_drill_crumbs",
 
@@ -37,7 +37,7 @@ var DimensionDrillCrumbs = Backbone.View.extend({
             return;
         }
 
-        $el.append('<span class="header">Drill trail: </span>');
+        $el.append('<span class="header">Drill history: </span>');
         e = [ 0 ];
         DimensionDrillCrumbs.crumbs.each(function(crumb, index) {
             //Make sure it exists... this is a hack to work around if the

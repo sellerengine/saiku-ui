@@ -258,21 +258,7 @@ var Table = Backbone.View.extend({
 
         
         // Clear the contents of the table
-        var cdate = new Date().getHours() + ":" + new Date().getMinutes();
-        var runtime = args.data.runtime != null ? (args.data.runtime / 1000).toFixed(2) : "";
-        /*
-        var info = '<b>Time:</b> ' + cdate 
-                + " &emsp;<b>Rows:</b> " + args.data.height 
-                + " &emsp;<b>Columns:</b> " + args.data.width 
-                + " &emsp;<b>Duration:</b> " + runtime + "s";
-*/
-var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate 
-                + "&emsp;/ &nbsp;" + args.data.width 
-                + " x " + args.data.height 
-                + "&nbsp; / &nbsp;" + runtime + "s";
-        $(this.workspace.el).find(".workspace_results_info")
-            .html(info)
-            .prepend(new DimensionDrillCrumbs().el);
+        this.workspace.updateResultInfo(args);
         this.workspace.adjust();
         //Saiku.i18n.translate();
         $(this.el).html('<tr><td>Rendering ' + args.data.width + ' columns and ' + args.data.height + ' rows...</td></tr>');

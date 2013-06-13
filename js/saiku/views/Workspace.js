@@ -32,6 +32,7 @@ var Workspace = Backbone.View.extend({
         // Maintain `this` in jQuery event handlers
         _.bindAll(this, "caption", "adjust", "toggle_sidebar", "prepare", "new_query", 
                 "init_query", "update_caption", "populate_selections","refresh", "sync_query");
+        _.bindAll(this, "updateResultInfo");
                 
         // Attach an event bus to the workspace
         _.extend(this, Backbone.Events);
@@ -59,6 +60,9 @@ var Workspace = Backbone.View.extend({
             this.query.workspace = this;
             this.query.save({}, { success: this.init_query });
         }
+
+        //Whenever we get query results, show our info
+        this.bind("query:result", this.updateResultInfo);
 
         // Flash cube navigation when rendered
         Saiku.session.bind('tab:add', this.prepare);
@@ -541,6 +545,29 @@ var Workspace = Backbone.View.extend({
     update_caption: function(increment) {
         var caption = this.caption(increment);
         this.tab.set_caption(caption);
+    },
+
+    updateResultInfo: function() {
+        var data = this.query.result.lastresult();
+        var runtime = (data.runtime != null)
+                ? (data.runtime / 1000).toFixed(2) : "";
+        var cdate = new Date().getHours() + ":" + new Date().getMinutes();
+        var info = '<b><span class="i18n">Info:</span></b> &nbsp;' + cdate
+                + "&emsp;/ &nbsp;" + data.width
+                + " x " + data.height
+                + "&nbsp; / &nbsp;" + runtime + "s";
+        if (!this._dimensionDrillCrumbs) {
+            this._dimensionDrillCrumbs = new DimensionDrillCrumbs();
+            $(this.el).find(".workspace_results_info").before(
+                    this._dimensionDrillCrumbs.el);
+        }
+        else {
+            //Re-render it as a cheap work-around for if they dragged something
+            //off or otherwise altered the query in a way we haven't detected.
+            this._dimensionDrillCrumbs.render();
+        }
+        $(this.el).find(".workspace_results_info")
+            .html(info);
     },
     
    

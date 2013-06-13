@@ -653,8 +653,17 @@ span.clear_axis {
     border: 1px solid #5ac055;
 }
 
+.workspace_info_holder {
+    position: relative;
+    overflow: hidden;
+}
+
 .dimension_drill_crumbs {
+    display: inline-block;
+    margin-left: 1em;
     margin-right: 1.5em;
+    min-height: 1em;
+    color: #999;
 }
 .dimension_drill_crumbs .header {
     font-weight: bold;
@@ -1022,6 +1031,9 @@ span.clear_axis {
 }
 /** Workspace Results */
 .workspace_results_info {
+    display: inline-block;
+    position: absolute;
+    right: 0;
     color: #999999;
     padding-right: 20px;
     overflow: hidden;
