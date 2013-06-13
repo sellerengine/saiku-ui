@@ -69,7 +69,11 @@ var Table = Backbone.View.extend({
             var d = cell.properties.dimension;
             var h = cell.properties.hierarchy;
             var l = cell.properties.level;
-            var hrefName = [ d, 'hierarchy', '[' + h + ']', l ].join('/');
+            var hrefH = h;
+            if (hrefH[0] !== '[') {
+                hrefH = '[' + h + ']';
+            }
+            var hrefName = [ d, 'hierarchy', hrefH, l ].join('/');
 
             var keep_payload = JSON.stringify(
                 {
