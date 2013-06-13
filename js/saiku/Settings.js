@@ -32,6 +32,7 @@ var Settings = {
         'saiku.olap.query.nonempty': 'true',
         'saiku.olap.query.nonempty.rows': 'true',
         'saiku.olap.query.nonempty.columns': 'true',
+        'saiku.olap.query.drillthrough': 'true',
         'saiku.ui.render.mode' : 'table'
     },
     /* Valid values for CELLSET_FORMATTER:
