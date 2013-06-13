@@ -481,7 +481,7 @@ var WorkspaceDropZone = Backbone.View.extend({
         }
         */
         
-        $axis = ui.item.parents('.fields_list_body');
+        var $axis = ui.item.parents('.fields_list_body');
         var target = "";
         
         if ($axis.hasClass('rows')) target = "ROWS";
@@ -553,7 +553,7 @@ var WorkspaceDropZone = Backbone.View.extend({
     
     move_dimension: function(event, ui, target, callback) {
         if (! ui.item.hasClass('deleted')) {
-            $axis = ui.item.parents('.fields_list_body');
+            var $axis = ui.item.parents('.fields_list_body');
 
             // Notify the model of the change
             var dimension = ui.item.find('a').attr('href').replace('#', '').split('/')[0];
@@ -582,8 +582,8 @@ var WorkspaceDropZone = Backbone.View.extend({
         var member = ui.item.find('a').attr('href');
         var dimension = member.replace('#', '').split('/')[0];
         var index = ui.item.parent('.connectable').children().index(ui.item);
-        var axis = ui.item.parents('.fields_list_body');
-        var allAxes = axis.parent().parent();
+        var $axis = ui.item.parents('.fields_list_body');
+        var allAxes = $axis.parent().parent();
         var target = '';
         var source = '';
         var myself = this;
@@ -642,7 +642,7 @@ var WorkspaceDropZone = Backbone.View.extend({
         $.extend(clone.data(), ui.item.data());
         
 
-        axis.find('.d_dimension a').each( function(index, element) {
+        $axis.find('.d_dimension a').each( function(index, element) {
             element = $(element);
             if (!element.prev() || (element.prev() && element.prev().length == 0)) {
                 var $icon = $("<span />").addClass('sprite sort none');
@@ -653,7 +653,7 @@ var WorkspaceDropZone = Backbone.View.extend({
             }
         });
 
-        axis.find('.d_measure a, .d_dimension a').each( function(index, element) {
+        $axis.find('.d_measure a, .d_dimension a').each( function(index, element) {
             element = $(element);
             if (!element.prev() || (element.prev() && element.prev().length == 0)) {
                 if (sourceAxis != "FILTER") {
