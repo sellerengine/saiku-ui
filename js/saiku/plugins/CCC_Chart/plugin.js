@@ -762,7 +762,6 @@ $(this.el).prepend(" | chart process");
             for (var i = 0, m = Chart.prototype.extraCharts.length;
                     i < m; i++) {
                 var ec = Chart.prototype.extraCharts[i];
-                console.log("Adding " + ec[0]);
                 var domSrc = '<li class="extra_chart"><a href="#{0}"\
                         class="i18n {0} chartoption button"\
                         title="{1}">{1}</a></li>';
